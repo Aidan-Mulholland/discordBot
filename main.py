@@ -1,24 +1,29 @@
 import discord
+from discord.ext import commands
 import json
-import guideMaker
 
 client = discord.Client()
+bot = commands.Bot(command_prefix='!')
 
-@client.event
+@bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    print('We have logged in as {0.user}'.format(bot))
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-    elif message.content.startswith("/guide"):
-        await message.channel.send(message.content.split(" ")[1:])
-        await message.channel.send(guideMaker.generate(message.content.split(" ")[1:]))
-    else:
-        await message.channel.send(message.author.name + " said: " + message.content)
+@bot.command()
+async def guide(ctx, *args):
+    embed=discord.Embed(
+        title="Guide",
+        description="Sylas Items",
+        color=discord.Color.blue()
+    )
+    embed.set_thumbnail(url="https://images2.minutemediacdn.com/image/upload/c_fill,w_912,ar_16:9,f_auto,q_auto,g_auto/shape/cover/sport/lol--f23c5f332072d98de640cdfb5a3b4980.jpg")
+    with open("items.json") as itemsJSON:
+        items = json.load(itemsJSON)
+        for i in args:
+            embed.set_image(url=items[i])
+    await ctx.send(embed=embed)
 
 with open("config.json") as jsonFile:
     config = json.load(jsonFile)
 
-client.run(config["BOT_API_KEY"])
+bot.run(config["BOT_API_KEY"])
