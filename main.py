@@ -1,7 +1,6 @@
 import discord
 import json
-
-
+import guideMaker
 
 client = discord.Client()
 
@@ -13,9 +12,13 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-
-    await message.channel.send(message.author.name + " said: " + message.content)
+    elif message.content.startswith("/guide"):
+        await message.channel.send(message.content.split(" ")[1:])
+        await message.channel.send(guideMaker.generate(message.content.split(" ")[1:]))
+    else:
+        await message.channel.send(message.author.name + " said: " + message.content)
 
 with open("config.json") as jsonFile:
-    config = json.load(jsonFile)    
+    config = json.load(jsonFile)
+
 client.run(config["BOT_API_KEY"])
