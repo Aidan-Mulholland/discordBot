@@ -12,8 +12,8 @@ class Scraper:
     """
 
     @staticmethod
-    def GetChampPage(ChampName): #returns HTML page of the Champ site
-        pageurl = "https://u.gg/lol/champions/"+ChampName+"/build" #page url for the specific champ
+    def GetChampPage(ChampName, role=None): #returns HTML page of the Champ site
+        pageurl = "https://u.gg/lol/champions/"+ChampName.lower()+"/build?="+str(role).lower() #page url for the specific champ
 
         RawHTML = requests.get(pageurl) #gets u.gg Champ HTML file
         HTMLpage = BeautifulSoup(RawHTML.content, 'html.parser') #encodes html file into BS4 object
@@ -55,10 +55,11 @@ class Scraper:
         return Items, missing #returns list of items
 
     @staticmethod
-    def BestItem(ChampName): #returns list of best items
-        HTMLpage = Scraper.GetChampPage(ChampName)
+    def BestItem(ChampName, role=None): #returns list of best items
+        HTMLpage = Scraper.GetChampPage(ChampName, role)
         ItemImgUrls = Scraper.GetChampItems(HTMLpage)
-        return Scraper.ConvertUrlToItem(ItemImgUrls)
+        Items = Scraper.ConvertUrlToItem(ItemImgUrls)
+        return Items    
         
     @staticmethod
     def ShortenUrl(URLstring, n = 2):#returns end position of string to decrease likelyhood of scraping errors, n is the number of ; you want to keep.
@@ -66,29 +67,29 @@ class Scraper:
         return URLstring[:endIndex] #returns shorten string
 
     @staticmethod
-    def Test(ChampList):
-        with open(ChampList, 'r') as Champs:
-            Champs = json.load(Champs)['ChampNames']
+    def Test(ChampList): #test Champlist for missing items
+        with open(ChampList, 'r') as Champs: 
+            Champs = json.load(Champs)['ChampNames'] #get champ names
 
-        ProblemChamps = {}
+        ProblemChamps = {} #stores champ data
 
-        for i, champ in enumerate(Champs):
+        for i, champ in enumerate(Champs): #interates over all champs
             print(f' {i} : {champ}')
-            HTMLpage = Scraper.GetChampPage(champ)
+            HTMLpage = Scraper.GetChampPage(champ) #gets items from u.gg
             ItemImgUrls = Scraper.GetChampItems(HTMLpage)
             ItemNames, missing = Scraper.ConvertUrlToItem(ItemImgUrls)
-            if missing != []:
+            if missing != []: #if there is a missing item report it
                 ProblemChamps[champ] = {'missing' : missing, 'Found' : ItemNames}
         
-        with open('Logs/logtest.json', 'w+') as file:
+        with open('Logs/logtest.json', 'w+') as file: #create log file
             json.dump(ProblemChamps, file)
         return ProblemChamps
 
-def Test_Champ(ChampName): #test function to check individual champions
-    x, _ = Scraper.BestItem(ChampName)
+def Test_Champ(ChampName, role=None): #test function to check individual champions
+    x, _ = Scraper.BestItem(ChampName, role)
     print(x)
 
 if __name__ == "__main__":
-    Test_Champ("fizz")
+    Test_Champ("fizz", "top")
     #x = Scraper.Test("JSON/ChampList.json")   
-
+    
